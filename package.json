@@ -1,0 +1,36 @@
+{
+  "name": "bkendz-admin-node",
+  "version": "1.0.0",
+  "description": "Admin page for viewing database entries and user requests in realtime",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bluebird": "latest",
+    "body-parser": "^1.18.2",
+    "cookie-parser": "^1.4.3",
+    "ejs": "^2.5.7",
+    "express": "latest",
+    "gulp": "^3.9.1",
+    "jwt-simple": "^0.5.1",
+    "lodash": "latest",
+    "moment": "^2.18.1",
+    "morgan": "^1.8.2",
+    "sequelize": "^4.37.1",
+    "websocket": "^1.0.24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codeandpush/bkendz-admin-node.git"
+  },
+  "keywords": [
+    "rent"
+  ],
+  "author": "Chinwo, Anthony (anthony.chinwo@gmail.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/codeandpush/bkendz-admin-node/issues"
+  },
+  "homepage": "https://github.com/codeandpush/bkendz-admin-node#readme"
+}

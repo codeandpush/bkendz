@@ -1,0 +1,25 @@
+
+<div class="input-group input-group-lg">
+    <input type="text" class="form-control" aria-label="..." id="search_term" data-emit-keyup="search">
+
+    <div class="input-group-btn ">
+        <button type="button" class="btn btn-default" data-emit-click="search" aria-haspopup="true" style="width: 100px;" aria-expanded="false">Go!</button>
+    </div>
+</div><!-- /input-group -->
+
+<ul class="nav nav-pills" style="margin: 16px 0" id="search_results_filter">
+    <li role="presentation" class="active"><a data-emit-click="show_all_search_result" role="tab" data-toggle="pill">All</a></li>
+    <li role="presentation" class=""><a href="#search_users" role="tab" data-toggle="pill">Users</a></li>
+    <li role="presentation"><a href="#search_items" role="tab" data-toggle="pill">Rental Items</a></li>
+    <li role="presentation"><a href="#search_orders" role="tab" data-toggle="pill">Orders</a></li>
+</ul>
+
+<div class="tab-content" id="search_results_container">
+    <div class="tab-pane fade in active" id="search_users">
+    </div>
+    <div class="tab-pane fade in active" id="search_items" style="height: 200px;width: 100%">
+
+    </div>
+    <div class="tab-pane fade in active" id="search_orders" style="height: 200px;width: 100%">
+    </div>
+</div>

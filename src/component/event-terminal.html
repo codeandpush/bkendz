@@ -1,0 +1,132 @@
+<template id="event-terminal-from-template">
+
+</template>
+
+<script>
+    let importedDoc = document.currentScript.ownerDocument;
+    //let $this = $
+
+    class EventTerminal extends HTMLElement {
+
+        constructor() {
+            super()
+
+            this.addEventListener('click', e => {
+                // Don't toggle the drawer if it's disabled.
+                if (this.disabled) {
+                    return;
+                }
+                this.toggleDrawer()
+            })
+
+            let tmpl = importedDoc.querySelector('#event-terminal-from-template')
+
+            let shadowRoot = this.attachShadow({mode: 'open'})
+            shadowRoot.appendChild(tmpl.content.cloneNode(true))
+            shadowRoot.documentElement = {}
+
+            var self = this
+
+            window._ELEM = this
+
+        }
+
+        static get app() {
+            return window.app
+        }
+
+        /**
+         * @return {string}
+         */
+        static get VERSION() {
+            return '1.0.0'
+        }
+
+        get app() {
+            return this.constructor.app
+        }
+
+        get elems() {
+            return {
+                dropdown: this.shadowRoot.querySelector('.dropdown'),
+                dropdownMenu: this.shadowRoot.querySelector('.dropdown-menu'),
+            }
+        }
+
+        connectedCallback() {
+            //this.innerHTML = "<b>I'm an x-foo-with-markup!</b>";
+        }
+
+        disconnectedCallback() {
+
+        }
+
+        static get observedAttributes() {
+            return ['disabled', 'open', 'value'];
+        }
+
+        attributeChangedCallback(attrName, oldVal, newVal) {
+            console.log('[EventTerminal] attr=%s, oldVal=%s, newVal=%s', attrName, oldVal, newVal)
+
+            if (this.disabled) {
+                this.setAttribute('tabindex', '-1');
+                this.setAttribute('aria-disabled', 'true');
+            } else {
+                this.setAttribute('tabindex', '0');
+                this.setAttribute('aria-disabled', 'false');
+            }
+        }
+
+        adoptedCallback() {
+
+        }
+
+        // A getter/setter for an open property.
+        get open() {
+            return this.hasAttribute('open');
+        }
+
+        set open(val) {
+            // Reflect the value of the open property as an HTML attribute.
+            if (val) {
+                this.setAttribute('open', '');
+            } else {
+                this.removeAttribute('open');
+            }
+            this.toggleDrawer();
+        }
+
+        // A getter/setter for a disabled property.
+        get disabled() {
+            return this.hasAttribute('disabled');
+        }
+
+        set disabled(val) {
+            // Reflect the value of the disabled property as an HTML attribute.
+            if (val) {
+                this.setAttribute('disabled', '');
+            } else {
+                this.removeAttribute('disabled');
+            }
+        }
+
+        toggleDrawer() {
+        }
+    }
+</script>
+
+<script>
+//    (function(tagName, cls) {
+//        let existing = customElements.get(tagName)
+//        console.log('register', existing)
+//        if (!existing) {
+//            customElements.define(tagName, cls)
+//        } else if (existing.VERSION !== cls.VERSION) {
+//            console.log('version mismatch: current=%s, new=%s', existing.VERSION, cls.VERSION)
+//        } else {
+//            console.log('currently registered %s is up-to-date')
+//        }
+//    })('event-terminal', EventTerminal)
+
+</script>
+

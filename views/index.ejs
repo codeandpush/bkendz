@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/jpeg" href="images/bkendz_logo.jpeg" />
+    <title>Bkendz - Admin</title>
+
+    <link rel="import" href="component/event-terminal.html">
+
+    <!-- reference the ag-Grid library-->
+    <script src="https://unpkg.com/ag-grid/dist/ag-grid.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://unpkg.com/eventemitter3@latest/umd/eventemitter3.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        body    {
+            padding-top:50px;
+            width: 100%;
+        }
+
+        #connection_alert {
+            display: none;
+        }
+
+        event-terminal:not(:defined) {
+            display: inline-block;
+            height: 100vh;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            background-color: hotpink;
+        }
+
+        event-terminal {
+            height: 40px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body style="position: relative">
+
+
+
+<div id="connection_alert" style="background-color: orange;width: 100%;position: absolute;left: 0px;top: 0px;height: 32px">
+    <center style="color: white"><h5>Connection lost, please refresh the page</h5></center>
+</div>
+
+<div class="container">
+
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#" style="padding: 10px 16px">
+                <img alt="Brand" src="images/bkendz_logo.jpeg" width="32px" height="32px" style="border-radius: 16%;">
+            </a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <h4 class="navbar-text"><span style="color: forestgreen">Bkendz</span> Admin</h4>
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#search" aria-controls="settings" role="tab" data-toggle="tab">Search</a></li>
+                <li class=""><a href="#users" aria-controls="settings" role="tab" data-toggle="tab">Users</a></li>
+                <li class=""><a href="#rental_items" aria-controls="settings" role="tab" data-toggle="tab"> Items <span class="sr-only">(current)</span></a></li>
+
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#">Link</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+
+<main>
+
+
+
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="search">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <h1 class="text-center" style="margin-bottom: 28px">Search Bkendz</h1>
+                    <%- include('_search'); %>
+                </div><!-- /.col-lg-6 -->
+            </div><!-- /.row -->
+        </div>
+        <div role="tabpanel" class="tab-pane" id="users">
+            <div class="btn-toolbar pull-right" role="toolbar" aria-label="...">
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-success">New</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-primary">Update</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-danger">Delete</button>
+                </div>
+            </div>
+            <h1>Bkendz Customers</h1>
+
+            <!-- the div ag-Grid will use to render it's data -->
+            <div id="myGrid" style="height: 200px;width: 100%" class="ag-theme-fresh"></div>
+
+        </div>
+        <div role="tabpanel" class="tab-pane" id="rental_items">
+            <div class="btn-toolbar pull-right" role="toolbar" aria-label="...">
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-success">New</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-primary">Update</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-danger">Delete</button>
+                </div>
+            </div>
+            <h1>Bkendz Rentals</h1>
+
+            <!-- the div ag-Grid will use to render it's data -->
+            <div id="itemsGrid" style="height: 200px;width: 100%" class="ag-theme-fresh"></div>
+        </div>
+    </div>
+
+</main>
+
+</div>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<script src="js/app.js"></script>
+
+<script>
+    customElements.whenDefined('event-terminal').then(() => {
+        console.log('event-terminal defined');
+    });
+</script>
+</body>
+</html>
