@@ -45,14 +45,18 @@ app.use(function (err, req, res, next) {
     console.error(err)
 })
 
-module.exports = app;
+
 
 const server = http.createServer(app)
 // Listen
 
-const port = process.env.PORT || 26116
-console.log(`starting monitoring server on ${port}...`)
-server.listen(port)
+module.exports = {app, server}
+
+if (require.main === module) {
+    const port = process.env.PORT || 26116
+    console.log(`starting monitoring server on ${port}...`)
+    server.listen(port)
+}
 
 const wsServer = new WebSocketServer({httpServer: server, autoAcceptConnections: false});
 
