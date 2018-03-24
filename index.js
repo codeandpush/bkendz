@@ -106,7 +106,37 @@ class Bkendz {
             const connection = request.accept('echo-protocol', request.origin);
 
             connection._resourceURL = request.resourceURL
-            console.log((new Date()) + ' Connection accepted.');
+            console.log((new Date()) + ' Connection accepted.')
+    
+            connection.send = function (topic, resp) {
+                switch (resp.type) {
+                    case 'utf8':
+                        let dataStr = resp
+                
+                        if (_.isObject(dataStr) && topic && !('topic' in dataStr)) {
+                            dataStr.topic = topic
+                        }
+                
+                        if (!_.isString(dataStr)) {
+                            dataStr = JSON.stringify(dataStr);
+                        }
+                
+                        this.sendUTF(dataStr, (error) => {
+                            if (error) {
+                                console.error(error)
+                            } else {
+                                console.log('message sent:', dataStr.slice(0, 100))
+                            }
+                        })
+                        break;
+                    case 'binary':
+                        this.sendBytes(resp.binaryData);
+                        break;
+                    default:
+                        throw Error(`unknown response data type ${resp.dataType}`)
+                }
+            }
+            
             const wsHandler = messageHandler.wsHandler
 
             const handleMessage = _.partial(wsHandler.handleMessage, connection).bind(wsHandler)

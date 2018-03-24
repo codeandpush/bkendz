@@ -22,51 +22,31 @@ class WebSocketHandler extends EventBus {
         let parsed = url.parse(msg.topic, true)
         let handler = this.handlers[parsed.pathname]
 
-        if (!handler) return {data: 404, type: 'utf8'}
+        let response = handler ? handler(connection, _.extend({$msg: msg}, parsed.query)) : {data: 404, type: 'utf8', error: true}
 
-        let resp = handler(connection, _.extend({$msg: msg}, parsed.query))
-
-        return (Promise.is(resp) ? resp : Promise.resolve(resp))
-    }
-
-    respond(connection, resp) {
-        return Promise.resolve(resp)
+        return (Promise.is(response) ? response : Promise.resolve(response))
             .then((resp) => {
-
+    
                 if (_.isString(resp)) {
                     resp = {type: 'utf8', data: resp}
-                } else if (!('type' in resp)) {
+                }
+                
+                if (!('type' in resp)) {
                     resp['type'] = 'utf8'
                 }
+    
+                if (!('topic' in resp)) {
+                    resp.topic = msg.topic
+                }
+                
+                return resp
+            })
+    }
 
-                return new Promise((resolve, reject) => {
-
-                    let completionFn = (error) => {
-                        if (error) {
-                            reject(error)
-                        } else {
-                            resolve()
-                        }
-                    }
-
-                    switch (resp.type) {
-                        case 'utf8':
-                            let dataStr = resp.data
-
-                            if (!_.isString(dataStr)) {
-                                dataStr = JSON.stringify(dataStr);
-                            }
-
-                            connection.sendUTF(dataStr, completionFn)
-                            break;
-                        case 'binary':
-                            connection.sendBytes(resp.binaryData, completionFn);
-                            break;
-                        default:
-                            throw Error(`unknown response data type ${resp.dataType}`)
-                    }
-                    return true
-                })
+    respond(connection, response) {
+        return Promise.resolve(response)
+            .then((resp) => {
+                return connection.send(resp.topic, resp)
             })
     }
 
@@ -90,14 +70,6 @@ wsHandler.topic('/subscribe', (conn, msg) => {
 
     return {data: {subscribed: msg.subject || null}}
 })
-
-wsHandler.topic('/subscribe', (conn, msg) => {
-
-    wsHandler.addSubscription(msg.subject, conn)
-
-    return {data: {subscribed: msg.subject || null}}
-})
-
 
 const routeHandler = new express.Router()
 

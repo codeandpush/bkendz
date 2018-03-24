@@ -153,6 +153,9 @@ class BkendzAdmin extends EventEmitter3 {
             enableFilter: true,
             floatingFilter: true,
             animateRows: true,
+            getRowNodeId: function(data) {
+                return data.id
+            }
         }
         return this._usersGridOptions
     }
@@ -249,46 +252,32 @@ app.on('server_connected', () => {
 
     let usersTable = app.usersGrid // init table
     let itemsTable = app.itemsGrid // init table
-
-    app.server.on('db_update', (msg) => {
-        console.log('db update:', msg)
-
-        for (let update of msg.data.updates) {
-            switch (update.type) {
-                case 'User':
-                    app.usersGridOptions.api.updateRowData({add: [update.value]})
-                    break
-                case 'RentalItem':
-                    app.itemsGridOptions.api.updateRowData({add: [update.value]})
-                    break
-            }
-        }
-
-    })
-})
-
-app.on('api_disconnected', () => {
-    console.log('api disconnected')
-    setTimeout(() => app.connectToApi(), 1000 * app.retryCount.api)
-})
-
-app.on('api_connected', () => {
-    console.log('api connected')
-    let usersTable = app.usersGrid // init table
-    let itemsTable = app.itemsGrid // init table
     
-    app.api.on('db_update', (msg) => {
+    function updateOrInsert(data, gridApi) {
+        let rowNode = gridApi.getRowNode(data.id)
+        
+        if(rowNode){
+            rowNode.setData(data)
+        }else{
+            gridApi.updateRowData({add: [data]})
+        }
+    }
+    
+    app.server.on('db_update', (msg) => {
         console.log('db update:', msg)
         
         for (let update of msg.data.updates) {
-            switch (update.type) {
+            let api
+            switch (update.value.type) {
                 case 'User':
-                    app.usersGridOptions.api.updateRowData({add: [update.value]})
+                    api = app.usersGridOptions.api
                     break
-                case 'RentalItem':
-                    app.itemsGridOptions.api.updateRowData({add: [update.value]})
+                case 'Presentation':
+                    api = app.itemsGridOptions.api
                     break
             }
+            
+            updateOrInsert(update.value, api)
         }
         
     })
