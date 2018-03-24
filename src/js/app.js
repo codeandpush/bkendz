@@ -246,6 +246,25 @@ app.on('server_disconnected', () => {
 app.on('server_connected', () => {
     console.log('server connected')
     app.elems.connectionAlert.slideUp().hide()
+
+    let usersTable = app.usersGrid // init table
+    let itemsTable = app.itemsGrid // init table
+
+    app.server.on('db_update', (msg) => {
+        console.log('db update:', msg)
+
+        for (let update of msg.data.updates) {
+            switch (update.type) {
+                case 'User':
+                    app.usersGridOptions.api.updateRowData({add: [update.value]})
+                    break
+                case 'RentalItem':
+                    app.itemsGridOptions.api.updateRowData({add: [update.value]})
+                    break
+            }
+        }
+
+    })
 })
 
 app.on('api_disconnected', () => {

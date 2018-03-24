@@ -45,45 +45,15 @@ app.use(function (err, req, res, next) {
     console.error(err)
 })
 
-
-
 const server = http.createServer(app)
+
+const wsServer = new WebSocketServer({httpServer: server, autoAcceptConnections: false});
 // Listen
 
-module.exports = {app, server}
+module.exports = {app, server, wsServer}
 
 if (require.main === module) {
     const port = process.env.PORT || 26116
     console.log(`starting monitoring server on ${port}...`)
     server.listen(port)
 }
-
-const wsServer = new WebSocketServer({httpServer: server, autoAcceptConnections: false});
-
-function originIsAllowed(origin) {
-    // put logic here to detect whether the specified origin is allowed.
-    return true;
-}
-
-wsServer.on('request', function (request) {
-    if (!originIsAllowed(request.origin)) {
-        // Make sure we only accept requests from an allowed origin
-        request.reject();
-        console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
-        return;
-    }
-    console.dir('websocket:', request)
-    
-    const connection = request.accept('echo-protocol', request.origin);
-    
-    connection._resourceURL = request.resourceURL
-    console.log((new Date()) + ' Connection accepted.');
-    
-    const handleMessage = _.partial(messageHandler.wsHandler.handleMessage, connection).bind(messageHandler.wsHandler)
-    connection.on('message', handleMessage)
-    
-    connection.on('close', function(reasonCode, description){
-        messageHandler.wsHandler.onClose(this, reasonCode, description)
-    })
-    
-})
