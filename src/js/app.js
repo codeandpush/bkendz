@@ -149,6 +149,8 @@ class BkendzAdmin extends EventEmitter3 {
                 columnDefs.push({headerName: _.startCase(attrName), field: attrName})
             })
     
+            columnDefs = _.sortBy(columnDefs, (d) => _.includes(['createdAt', 'updatedAt'], d.field))
+    
             let gridOpts = opts[_.camelCase(colName)] = {debug: false,
                 enableSorting: true,
                 enableColResize: true,
@@ -247,6 +249,9 @@ app.on('server_connected', () => {
         
         for (let update of msg.data.updates) {
             let gridAttrName = _.camelCase(update.value.type)
+            
+            if(!app.gridOptions[gridAttrName]) continue
+            
             let api = app.gridOptions[gridAttrName].api
             updateOrInsert(update.value, api)
         }

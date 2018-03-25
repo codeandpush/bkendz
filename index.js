@@ -24,10 +24,10 @@ function modelsSync(options) {
         configPath: rc['config']
     })
     
-    if(clean){
+    if (clean) {
         lib.utils.deleteFiles(rc['migrations-path'], (fName) => fName !== '.keep')
         let dbPath = require(rc['config'])[process.env.NODE_ENV].storage
-    
+        
         if (!fs.existsSync(dbPath)) return
         fs.unlinkSync(dbPath)
     }
@@ -49,167 +49,87 @@ function modelsSync(options) {
 
 const DEFAULT_CONFIG = {}
 
-class SessionHandler extends lib.EventBus {
-
-    constructor(role){
-        super()
-        this.role = role
-    }
-
-    static originIsAllowed(origin) {
-        // put logic here to detect whether the specified origin is allowed.
-        return true;
-    }
-
-    onPrefChanged(){
-
-    }
-
-    create(){
-
-    }
-
-    update(){
-
-    }
-
-    service(){
-
-    }
-}
-
-SessionHandler.ROLE_CUSTOMER = 'Customer'
-SessionHandler.ROLE_EMPLOYEE = 'Staff'
-
-class CrudSession extends SessionHandler {
-
-}
-
-class AdministerSession extends SessionHandler {
-    constructor(){
-        super()
-    }
-
-}
+const {AdministerSession, SessionHandler, CrudSession} = lib.session
 
 class Bkendz {
-
-    constructor(args){
+    
+    constructor(args) {
         this._administer = args.administerEnabled
         this._sessAdmin = null
         this._sessClient = null
         this._sessApi = null
+        this._listening = false
+        this.apiSheet = args.apiSheet || {}
     }
-
-    get adminWs(){
-        if(this._adminWs) return this._adminWs
-
-        let wsServer = require('./server').wsServer
-        const messageHandler = require('./message_handler')
-
-        let self = this
-        wsServer.on('request', (request) => {
-            if (!self.admin.constructor.originIsAllowed(request.origin)) {
-                // Make sure we only accept requests from an allowed origin
-                request.reject()
-                console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.')
-                return
-            }
-
-            const connection = request.accept('echo-protocol', request.origin)
-
-            connection._resourceURL = request.resourceURL
-            console.log((new Date()) + ' Connection accepted.')
     
-            connection.send = function (topic, resp) {
-                switch (resp.type) {
-                    case 'utf8':
-                        let dataStr = resp
-                
-                        if (_.isObject(dataStr) && topic && !('topic' in dataStr)) {
-                            dataStr.topic = topic
-                        }
-                
-                        if (!_.isString(dataStr)) {
-                            dataStr = JSON.stringify(dataStr);
-                        }
-                
-                        this.sendUTF(dataStr, (error) => {
-                            if (error) {
-                                console.error(error)
-                            } else {
-                                console.log('message sent:', dataStr.slice(0, 100))
-                            }
-                        })
-                        break;
-                    case 'binary':
-                        this.sendBytes(resp.binaryData);
-                        break;
-                    default:
-                        throw Error(`unknown response data type ${resp.dataType}`)
-                }
-            }
-            
-            const wsHandler = messageHandler.wsHandler
-
-            const handleMessage = _.partial(wsHandler.handleMessage, connection).bind(wsHandler)
-            connection.on('message', (...args) => {
-
-                try {
-                    handleMessage(...args)
-                        .then((res) => {
-                            self.admin.emit('request', wsHandler, res, connection)
-                        })
-                }catch (error){
-                    console.error(error)
-                }
-            })
-
-            connection.on('close', function(reasonCode, description){
-                messageHandler.wsHandler.onClose(this, reasonCode, description)
-            })
-
-        })
-
-        this._adminWs = {server: wsServer, handler: messageHandler.wsHandler}
-        return this._adminWs
+    startApi() {
+    
     }
-
-    get adminHttp(){
-        let sv = require('./server')
-        return {handler: sv.app, server: sv.server}
+    
+    set apiSheet(as) {
+        this._apiSheet = as || {}
     }
-
-    get admin(){
-        if(!this._sessAdmin) this._sessAdmin = new AdministerSession()
+    
+    get apiSheet() {
+        return this._apiSheet
+    }
+    
+    // get cache() {}
+    // get cacheHttp() {}
+    // get cacheWs() {}
+    
+    get adminWs() {
+        if (this._adminWs) return {handler: this._adminWs.wsHandler, server: this._adminWs.wsServer}
+        
+        let {app, server, wsServer} = require('./server').createHttp({'/': this.admin.messageHandlers.http})
+        
+        wsServer.on('request', this.admin.wsRequestHandler.bind(this.admin))
+        
+        this._adminWs = {
+            wsServer: wsServer,
+            httpApp: app,
+            httpServer: server,
+            wsHandler: this.admin.messageHandlers.ws,
+            httpHandler: this.admin.messageHandlers.http
+        }
+        return {handler: this._adminWs.wsHandler, server: this._adminWs.wsServer}
+    }
+    
+    get adminHttp() {
+        if (this._adminWs) return {handler: this._adminWs.httpHandler, server: this._adminWs.httpServer}
+        this.adminWs // init
+        return {handler: this._adminWs.httpHandler, server: this._adminWs.httpServer}
+    }
+    
+    get admin() {
+        if (!this._sessAdmin) this._sessAdmin = new AdministerSession()
         return this._sessAdmin
     }
-
-    get client(){
-        if(!this._sessClient) this._sessClient = new SessionHandler()
+    
+    get client() {
+        if (!this._sessClient) this._sessClient = new SessionHandler()
         return this._sessClient
     }
-
-    get api(){
-        if(!this._sessApi) this._sessApi = new CrudSession()
+    
+    get api() {
+        if (!this._sessApi) this._sessApi = new CrudSession()
         return this._sessApi
     }
-
-    set administerEnabled(enabled){
+    
+    set administerEnabled(enabled) {
         this._administer = true
         //this.emit('administer_changed', enabled)
     }
-
-    listen(port){
+    
+    listen(port) {
         `listening on port ${port}`
         this.adminHttp.server.listen(port)
         let _adminWs = this.adminWs
+        this._listening = true
     }
 }
 
-Bkendz.DEFAULT_HANDERS = {
-
-}
+Bkendz.DEFAULT_HANDERS = {}
 
 module.exports = {
     tasks,
@@ -222,6 +142,6 @@ module.exports = {
     ApiSessionHandler: CrudSession,
 }
 
-if(require.main === module){
+if (require.main === module) {
 
 }
