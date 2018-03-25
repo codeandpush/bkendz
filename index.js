@@ -5,7 +5,10 @@
 const tasks = require('./tasks')
 const fs = require('fs'), path = require('path'), lib = require('./lib'), _ = require('lodash')
 
-function modelsSync() {
+function modelsSync(options) {
+    options = options || {clean: false, seed: false}
+    let clean = options.clean, seed = options.seed
+    
     console.log(`cwd: ${process.cwd()}, dir: ${__dirname}, file: ${__filename}`)
     let rc = lib.utils.getRcConf()
     console.log('[.bkendzrc] %j', rc)
@@ -20,6 +23,16 @@ function modelsSync() {
         dbobjectPath: 'bkendz',
         configPath: rc['config']
     })
+    
+    if(clean){
+        lib.utils.deleteFiles(rc['migrations-path'], (fName) => fName !== '.keep')
+        let dbPath = require(rc['config'])[process.env.NODE_ENV].storage
+    
+        if (!fs.existsSync(dbPath)) return
+        fs.unlinkSync(dbPath)
+    }
+    
+    return lib.db.generateMigrations().then(() => lib.db.init(seed))
 }
 
 // app.listen(9000)
@@ -98,12 +111,12 @@ class Bkendz {
         wsServer.on('request', (request) => {
             if (!self.admin.constructor.originIsAllowed(request.origin)) {
                 // Make sure we only accept requests from an allowed origin
-                request.reject();
-                console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
-                return;
+                request.reject()
+                console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.')
+                return
             }
 
-            const connection = request.accept('echo-protocol', request.origin);
+            const connection = request.accept('echo-protocol', request.origin)
 
             connection._resourceURL = request.resourceURL
             console.log((new Date()) + ' Connection accepted.')
@@ -158,13 +171,13 @@ class Bkendz {
 
         })
 
-        this._adminWs = {server: wsServer, messageHandler: messageHandler.wsHandler}
+        this._adminWs = {server: wsServer, handler: messageHandler.wsHandler}
         return this._adminWs
     }
 
     get adminHttp(){
         let sv = require('./server')
-        return {messageHandler: sv.app, server: sv.server}
+        return {handler: sv.app, server: sv.server}
     }
 
     get admin(){

@@ -1,0 +1,6 @@
+
+<% tabs.forEach(function(tab) { %>
+<div role="tabpanel" class="tab-pane" id="<%= tab.label.toLowerCase() %>">
+    <%= tab.content %>
+</div>
+<% }); %>

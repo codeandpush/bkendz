@@ -31,13 +31,15 @@ class BkendzAdmin extends EventEmitter3 {
         super()
         this.retryCount = {api: 0, server: 0}
         this.deferreds = {}
+        this._schema = null
+        this._gridOptions = null
     }
     
     get elems() {
         return {
             connectionAlert: $('#connection_alert'),
-            usersGridDiv: $(document.querySelector('#myGrid')),
-            itemsGridDiv: $(document.querySelector('#itemsGrid')),
+            // usersGridDiv: $(document.querySelector('#grid_user')),
+            // itemsGridDiv: $(document.querySelector('#grid_presentation')),
             searchInput: $(document.querySelector('#search_term')),
             searchResultsItem: $(document.querySelector('#search_items')),
             searchResultsUser: $(document.querySelector('#search_users')),
@@ -135,82 +137,52 @@ class BkendzAdmin extends EventEmitter3 {
         this.api = this.connect(url, {connected: 'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
     }
     
-    get usersGridOptions() {
-        if (this._usersGridOptions) return this._usersGridOptions
-        let columnDefs = [
-            {headerName: "Name", field: "name"},
-            {headerName: "Email", field: "email"},
-            {headerName: "Created At", field: "createdAt"},
-            //{headerName: "Date of Birth", field: "dob"}
-        ]
+    get gridOptions(){
+        if (this._gridOptions) return this._gridOptions
         
-        this._usersGridOptions = {
-            debug: false,
-            enableSorting: true,
-            enableColResize: true,
-            rowData: [],
-            columnDefs: columnDefs,
-            enableFilter: true,
-            floatingFilter: true,
-            animateRows: true,
-            getRowNodeId: function(data) {
-                return data.id
+        let opts = this._gridOptions = {}
+        
+        _.each(this.dbSchema, (colDef, colName) => {
+            
+            let columnDefs = []
+            _.each(colDef, (attrType, attrName) => {
+                columnDefs.push({headerName: _.startCase(attrName), field: attrName})
+            })
+    
+            let gridOpts = opts[_.camelCase(colName)] = {debug: false,
+                enableSorting: true,
+                enableColResize: true,
+                rowData: [],
+                columnDefs: columnDefs,
+                enableFilter: true,
+                floatingFilter: true,
+                animateRows: true,
+                getRowNodeId: function(data) {
+                    return data.id
+                }
             }
-        }
-        return this._usersGridOptions
+            
+            new agGrid.Grid(document.querySelector(`#grid_${colName.toLowerCase()}`), gridOpts)
+        })
+        return opts
     }
     
-    get itemsGridOptions() {
-        if (this._itemsGridOptions) return this._itemsGridOptions
-        let columnDefs = [
-            {headerName: "Title", field: "title"},
-            {headerName: "Description", field: "description"},
-            {headerName: "Currency", field: "currencyCode"},
-            {headerName: "Price", field: "price"},
-            {headerName: "Thumbnail", field: "thumbnail_url"},
-            {headerName: "Created At", field: "createdAt"},
-            //{headerName: "Date of Birth", field: "dob"}
-        ]
-        
-        this._itemsGridOptions = {
-            debug: false,
-            enableSorting: true,
-            enableColResize: true,
-            rowData: [],
-            columnDefs: columnDefs,
-            enableFilter: true,
-            floatingFilter: true,
-            animateRows: true,
-        }
-        return this._itemsGridOptions
-    }
-    
-    get usersGrid() {
-        if (this._usersTable) return this._usersTable
-        
-        this._usersTable = new agGrid.Grid(this.elems.usersGridDiv.get(0), this.usersGridOptions)
-        return this._usersTable
-    }
-    
-    get itemsGrid() {
-        if (this._itemsGrid) return this._itemsGrid
-        
-        this._itemsGrid = new agGrid.Grid(this.elems.itemsGridDiv.get(0), this.itemsGridOptions)
-        return this._itemsGrid
-    }
-    
-    static newSearchResult(kwargs){
+    static newSearchResult(kwargs) {
         let searchResElem = this._SEARCH_RESULT_POOL.shift()
-        let defaultOpts = {thumbnail_url: 'http://www.aber.ac.uk/staff-profile-assets/img/noimg.png', title: '', description: ''}
+        let defaultOpts = {
+            thumbnail_url: 'http://www.aber.ac.uk/staff-profile-assets/img/noimg.png',
+            title: '',
+            description: ''
+        }
         
         kwargs = _.merge(defaultOpts, kwargs)
         
-        if(searchResElem){
+        if (searchResElem) {
             searchResElem = $(searchResElem)
             searchResElem.find('p').text(kwargs.description || kwargs.email)
             searchResElem.find('.media-heading a').text(kwargs.title || kwargs.name)
             searchResElem.find('img').attr('src', kwargs.thumbnail_url)
-        }else{
+        } else {
             searchResElem = $(_.template(this.TEMPLATE_SEARCH_RESULT)(kwargs))
         }
         
@@ -218,7 +190,7 @@ class BkendzAdmin extends EventEmitter3 {
         return searchResElem
     }
     
-    static deleteSearchResult(searchResult){
+    static deleteSearchResult(searchResult) {
         $(searchResult).prop('hidden', true)
         this._SEARCH_RESULT_POOL.push(searchResult)
     }
@@ -233,6 +205,14 @@ class BkendzAdmin extends EventEmitter3 {
             $(document).on(eventType, `[data-emit-${eventType}]`, emitWrap)
         })
         
+    }
+    
+    set dbSchema(schema){
+        this._schema = schema
+    }
+    
+    get dbSchema(){
+        return this._schema
     }
 }
 
@@ -249,16 +229,15 @@ app.on('server_disconnected', () => {
 app.on('server_connected', () => {
     console.log('server connected')
     app.elems.connectionAlert.slideUp().hide()
-
-    let usersTable = app.usersGrid // init table
-    let itemsTable = app.itemsGrid // init table
+    
+    let usersTable = app.gridOptions // init table
     
     function updateOrInsert(data, gridApi) {
         let rowNode = gridApi.getRowNode(data.id)
         
-        if(rowNode){
+        if (rowNode) {
             rowNode.setData(data)
-        }else{
+        } else {
             gridApi.updateRowData({add: [data]})
         }
     }
@@ -267,16 +246,8 @@ app.on('server_connected', () => {
         console.log('db update:', msg)
         
         for (let update of msg.data.updates) {
-            let api
-            switch (update.value.type) {
-                case 'User':
-                    api = app.usersGridOptions.api
-                    break
-                case 'Presentation':
-                    api = app.itemsGridOptions.api
-                    break
-            }
-            
+            let gridAttrName = _.camelCase(update.value.type)
+            let api = app.gridOptions[gridAttrName].api
             updateOrInsert(update.value, api)
         }
         
@@ -291,17 +262,18 @@ app.on('submitted_search', (term) => {
                 BkendzAdmin.deleteSearchResult(elem)
             })
             
-            if(_.isEmpty(resp.data.results)){
-                $('#search_results_filter').find('[role="presentation"]').addClass('disabled').removeClass('active') }
-            else{
+            if (_.isEmpty(resp.data.results)) {
+                $('#search_results_filter').find('[role="presentation"]').addClass('disabled').removeClass('active')
+            }
+            else {
                 $('#search_results_filter').find('[role="presentation"]').removeClass('disabled')
                 app.elems.searchResultsContainer.find('.tab-pane').addClass('in active')
             }
             
-            for(let searchResultKwargs of resp.data.results){
+            for (let searchResultKwargs of resp.data.results) {
                 let elem = BkendzAdmin.newSearchResult(searchResultKwargs)
                 
-                switch(searchResultKwargs.$type){
+                switch (searchResultKwargs.$type) {
                     case 'RentalItem':
                         app.elems.searchResultsItem.append(elem)
                         break

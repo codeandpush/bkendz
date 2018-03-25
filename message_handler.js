@@ -3,7 +3,8 @@
  */
 const express = require('express')
 const _ = require('lodash')
-const EventBus = require('./lib').EventBus
+const lib = require('./lib')
+const EventBus = lib.EventBus
 const Promise = require('bluebird')
 const url = require('url')
 
@@ -74,7 +75,14 @@ wsHandler.topic('/subscribe', (conn, msg) => {
 const routeHandler = new express.Router()
 
 routeHandler.get('/', (req, res) => {
-    res.render('index')
+    
+    let tabs = []
+    let schema = lib.db.schema()
+    _.each(schema, function(def, clsName) {
+        tabs.push({label: clsName, content: `Hello ${clsName}`})
+    })
+    
+    res.render('index', {tabs, defaultTab: 'user', schemaJson: JSON.stringify(schema, null, 4)})
 })
 
 module.exports = {wsHandler, routeHandler}
