@@ -79,26 +79,27 @@ class Bkendz {
     // get cacheWs() {}
     
     get adminWs() {
-        if (this._adminWs) return {handler: this._adminWs.wsHandler, server: this._adminWs.wsServer}
-        
-        let {app, server, wsServer} = require('./server').createHttp({'/': this.admin.messageHandlers.http})
-        
-        wsServer.on('request', this.admin.wsRequestHandler.bind(this.admin))
-        
-        this._adminWs = {
-            wsServer: wsServer,
-            httpApp: app,
-            httpServer: server,
-            wsHandler: this.admin.messageHandlers.ws,
-            httpHandler: this.admin.messageHandlers.http
-        }
-        return {handler: this._adminWs.wsHandler, server: this._adminWs.wsServer}
+        if (this._adminWs) return this._adminWs.ws
+        this._adminWs = this.admin.makeServers()
+        return this._adminWs.ws
     }
     
     get adminHttp() {
-        if (this._adminWs) return {handler: this._adminWs.httpHandler, server: this._adminWs.httpServer}
+        if (this._adminWs) return this.adminWs.http
         this.adminWs // init
-        return {handler: this._adminWs.httpHandler, server: this._adminWs.httpServer}
+        return this._adminWs.http
+    }
+    
+    get apiWs() {
+        if (this._apiWs) return this._apiWs.ws
+        this._apiWs = this.api.makeServers()
+        return this._apiWs.ws
+    }
+    
+    get apiHttp() {
+        if (this._apiWs) return this._apiWs.http
+        this.apiWs // init
+        return this._apiWs.http
     }
     
     get admin() {
@@ -112,7 +113,7 @@ class Bkendz {
     }
     
     get api() {
-        if (!this._sessApi) this._sessApi = new CrudSession()
+        if (!this._sessApi) this._sessApi = new CrudSession({apiSheet: this.apiSheet})
         return this._sessApi
     }
     
@@ -122,9 +123,12 @@ class Bkendz {
     }
     
     listen(port) {
-        `listening on port ${port}`
+        console.log(`[admin] listening on port ${port}`)
         this.adminHttp.server.listen(port)
-        let _adminWs = this.adminWs
+    
+        let apiPort = port + 1
+        console.log(`[api] listening on port ${apiPort}`)
+        this.apiHttp.server.listen(apiPort)
         this._listening = true
     }
 }
