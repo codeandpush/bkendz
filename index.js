@@ -19,9 +19,13 @@ function modelsSync(options) {
     let modelsPath = rc['models-path']
     lib.utils.mkDirs(modelsPath)
     
+    let relPath = path.relative(modelsPath, rc['config'])
+    
+    if(!relPath.startsWith('.')) relPath = './' + relPath
+    
     lib.db.writeModelsIndex(modelsPath, {
         dbobjectPath: 'bkendz',
-        configPath: rc['config']
+        configPath: relPath
     })
     
     if (clean) {
