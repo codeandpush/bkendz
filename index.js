@@ -61,6 +61,7 @@ class Bkendz {
         this.administerEnabled = this._administer = args.administerEnabled
         this.apiEnabled = args.apiEnabled
         this.optsAdmin = args.optsAdmin || {}
+        this.optsApi = args.optsApi || {}
         
         this._sessAdmin = null
         this._sessClient = null
@@ -112,7 +113,7 @@ class Bkendz {
     }
     
     get api() {
-        if (!this._sessApi) this._sessApi = new CrudSession({apiSheet: this.apiSheet})
+        if (!this._sessApi) this._sessApi = new CrudSession(_.merge({apiSheet: this.apiSheet}, this.optsApi))
         return this._sessApi
     }
     
