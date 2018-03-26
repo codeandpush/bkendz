@@ -117,15 +117,18 @@ class Bkendz {
     }
     
     listen(port) {
-        console.log(`[admin] listening on port ${port}`)
         if(this.administerEnabled) {
+            console.log(`[admin] listening on port ${port}`)
             this.adminHttp.server.listen(port)
+            port++
         }
         
         if(this.apiEnabled){
-            let apiPort = port + 1
-            console.log(`[api] listening on port ${apiPort}`)
-            this.apiHttp.server.listen(apiPort)
+            this.api.models.sequelize.sync()
+                .then(() => {
+                    console.log(`[api] listening on port ${port}`)
+                    this.apiHttp.server.listen(port)
+                })
         }
         
         this._listening = true
