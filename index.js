@@ -54,16 +54,15 @@ const {AdministerSession, SessionHandler, CrudSession} = lib.session
 class Bkendz {
     
     constructor(args) {
-        this._administer = args.administerEnabled
+        this.administerEnabled = this._administer = args.administerEnabled
+        this.apiEnabled = args.apiEnabled
+        this.optsAdmin = args.optsAdmin || {}
+        
         this._sessAdmin = null
         this._sessClient = null
         this._sessApi = null
         this._listening = false
         this.apiSheet = args.apiSheet || {}
-    }
-    
-    startApi() {
-    
     }
     
     set apiSheet(as) {
@@ -74,10 +73,6 @@ class Bkendz {
         return this._apiSheet
     }
     
-    // get cache() {}
-    // get cacheHttp() {}
-    // get cacheWs() {}
-    
     get adminWs() {
         if (this._adminWs) return this._adminWs.ws
         this._adminWs = this.admin.makeServers()
@@ -85,7 +80,7 @@ class Bkendz {
     }
     
     get adminHttp() {
-        if (this._adminWs) return this.adminWs.http
+        if (this._adminWs) return this._adminWs.http
         this.adminWs // init
         return this._adminWs.http
     }
@@ -103,7 +98,7 @@ class Bkendz {
     }
     
     get admin() {
-        if (!this._sessAdmin) this._sessAdmin = new AdministerSession()
+        if (!this._sessAdmin) this._sessAdmin = new AdministerSession(this.optsAdmin)
         return this._sessAdmin
     }
     
@@ -117,18 +112,18 @@ class Bkendz {
         return this._sessApi
     }
     
-    set administerEnabled(enabled) {
-        this._administer = true
-        //this.emit('administer_changed', enabled)
-    }
-    
     listen(port) {
         console.log(`[admin] listening on port ${port}`)
-        this.adminHttp.server.listen(port)
-    
-        let apiPort = port + 1
-        console.log(`[api] listening on port ${apiPort}`)
-        this.apiHttp.server.listen(apiPort)
+        if(this.administerEnabled) {
+            this.adminHttp.server.listen(port)
+        }
+        
+        if(this.apiEnabled){
+            let apiPort = port + 1
+            console.log(`[api] listening on port ${apiPort}`)
+            this.apiHttp.server.listen(apiPort)
+        }
+        
         this._listening = true
     }
 }
