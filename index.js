@@ -7,6 +7,7 @@ const fs = require('fs'), path = require('path'), lib = require('./lib'), _ = re
 
 function modelsSync(options) {
     options = options || {clean: false, seed: false}
+    let sequelizeBinPath = options.sequelizeBinPath
     let clean = options.clean, seed = options.seed
     
     console.log(`cwd: ${process.cwd()}, dir: ${__dirname}, file: ${__filename}`)
@@ -36,7 +37,7 @@ function modelsSync(options) {
         fs.unlinkSync(dbPath)
     }
     
-    return lib.db.generateMigrations().then(() => lib.db.init(seed))
+    return lib.db.generateMigrations().then(() => lib.db.init({sequelizeBinPath: sequelizeBinPath, seed}))
 }
 
 // app.listen(9000)
