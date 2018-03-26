@@ -33,8 +33,7 @@ function modelsSync(options) {
         lib.utils.deleteFiles(rc['migrations-path'], (fName) => fName !== '.keep')
         let dbPath = require(rc['config'])[process.env.NODE_ENV].storage
         
-        if (!fs.existsSync(dbPath)) return
-        fs.unlinkSync(dbPath)
+        if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath)
     }
     
     return lib.db.generateMigrations().then(() => lib.db.init({sequelizeBinPath: sequelizeBinPath, seed}))
