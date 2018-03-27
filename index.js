@@ -39,20 +39,6 @@ function modelsSync(options) {
     return lib.db.generateMigrations().then(() => lib.db.init({sequelizeBinPath: sequelizeBinPath, seed}))
 }
 
-// app.listen(9000)
-//
-// app.administerEnabled = true
-// app.clientEnabled = true
-// app.apiEnabled = true
-//
-// app.session.on('requested', (messageHandler, request) => {
-//
-//
-//     messageHandler.respond({display: 'Hello World'})
-// })
-
-const DEFAULT_CONFIG = {}
-
 const {AdministerSession, SessionHandler, CrudSession} = lib.session
 
 class Bkendz {
@@ -60,8 +46,11 @@ class Bkendz {
     constructor(args) {
         this.administerEnabled = this._administer = args.administerEnabled
         this.apiEnabled = args.apiEnabled
+        this.clientEnabled = args.clientEnabled
+        
         this.optsAdmin = args.optsAdmin || {}
         this.optsApi = args.optsApi || {}
+        this.optsClient = args.optsClient || {}
         
         this._sessAdmin = null
         this._sessClient = null
@@ -78,65 +67,45 @@ class Bkendz {
         return this._apiSheet
     }
     
-    get adminWs() {
-        if (this._adminWs) return this._adminWs.ws
-        this._adminWs = this.admin.makeServers()
-        return this._adminWs.ws
-    }
-    
-    get adminHttp() {
-        if (this._adminWs) return this._adminWs.http
-        this.adminWs // init
-        return this._adminWs.http
-    }
-    
-    get apiWs() {
-        if (this._apiWs) return this._apiWs.ws
-        this._apiWs = this.api.makeServers()
-        return this._apiWs.ws
-    }
-    
-    get apiHttp() {
-        if (this._apiWs) return this._apiWs.http
-        this.apiWs // init
-        return this._apiWs.http
-    }
-    
     get admin() {
-        if (!this._sessAdmin) this._sessAdmin = new AdministerSession(this.optsAdmin)
+        if (!this._sessAdmin) this._sessAdmin = new this.constructor.SESSION_CLS_ADMIN(this.optsAdmin)
         return this._sessAdmin
     }
     
     get client() {
-        if (!this._sessClient) this._sessClient = new SessionHandler()
+        if (!this._sessClient) this._sessClient = new this.constructor.SESSION_CLS_CLIENT(this.optsClient)
         return this._sessClient
     }
     
     get api() {
-        if (!this._sessApi) this._sessApi = new CrudSession(_.merge({apiSheet: this.apiSheet}, this.optsApi))
+        if (!this._sessApi) this._sessApi = new this.constructor.SESSION_CLS_API(_.merge({apiSheet: this.apiSheet}, this.optsApi))
         return this._sessApi
     }
     
     listen(port) {
-        if(this.administerEnabled) {
-            console.log(`[admin] listening on port ${port}`)
-            this.adminHttp.server.listen(port)
-            port++
-        }
-        
+    
         if(this.apiEnabled){
             this.api.models.sequelize.sync()
                 .then(() => {
-                    console.log(`[api] listening on port ${port}`)
-                    this.apiHttp.server.listen(port)
+                    this.api.servers.http.listen(port)
                 })
+        }
+        
+        if(this.administerEnabled) {
+            this.admin.servers.http.listen(port + 1)
+        }
+    
+        if(this.clientEnabled){
+            this.client.servers.http.listen(port + 2)
         }
         
         this._listening = true
     }
 }
 
-Bkendz.DEFAULT_HANDERS = {}
+Bkendz.SESSION_CLS_ADMIN = AdministerSession
+Bkendz.SESSION_CLS_API = CrudSession
+Bkendz.SESSION_CLS_CLIENT = SessionHandler
 
 module.exports = {
     tasks,

@@ -133,7 +133,7 @@ class BkendzAdmin extends EventEmitter3 {
     }
     
     connectToApi() {
-        let url = location.hostname.indexOf('localhost') === -1 ? 'wss://bkendz-api.herokuapp.com' : 'ws://localhost:9000'
+        let url = location.hostname.indexOf('localhost') === -1 ? 'wss://bkendz-api.herokuapp.com' : 'ws://localhost:9002'
         this.api = this.connect(url, {connected: 'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
     }
     
@@ -143,6 +143,9 @@ class BkendzAdmin extends EventEmitter3 {
         let opts = this._gridOptions = {}
         
         _.each(this.dbSchema, (colDef, colName) => {
+            let elem = document.querySelector(`#grid_${colName.toLowerCase()}`)
+            
+            if(!elem) return
             
             let columnDefs = []
             _.each(colDef, (attrType, attrName) => {
@@ -164,7 +167,7 @@ class BkendzAdmin extends EventEmitter3 {
                 }
             }
             
-            new agGrid.Grid(document.querySelector(`#grid_${colName.toLowerCase()}`), gridOpts)
+            new agGrid.Grid(elem, gridOpts)
         })
         return opts
     }
@@ -231,7 +234,12 @@ app.on('server_disconnected', () => {
 app.on('server_connected', () => {
     console.log('server connected')
     app.elems.connectionAlert.slideUp().hide()
-    
+})
+
+app.on('api_disconnected', () => console.log('api disconnected'))
+
+app.on('api_connected', () => {
+    console.log('api connected')
     let usersTable = app.gridOptions // init table
     
     function updateOrInsert(data, gridApi) {
@@ -244,7 +252,7 @@ app.on('server_connected', () => {
         }
     }
     
-    app.server.on('db_update', (msg) => {
+    app.api.on('db_update', (msg) => {
         console.log('db update:', msg)
         
         for (let update of msg.data.updates) {
@@ -312,6 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
     app.init()
     
     app.connectToServer()
+    app.connectToApi()
     
 });
 
