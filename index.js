@@ -26,7 +26,8 @@ function modelsSync(options) {
     
     lib.db.writeModelsIndex(modelsPath, {
         dbobjectPath: 'bkendz',
-        configPath: relPath
+        configPath: rc['config'],
+        configRelPath: relPath
     })
     
     if (clean) {
@@ -135,6 +136,7 @@ module.exports = {
     DbObject: lib.db.DbObject,
     SessionHandler,
     ApiSessionHandler: CrudSession,
+    ModelImporter: lib.db.ModelImporter
 }
 
 if (require.main === module) {
