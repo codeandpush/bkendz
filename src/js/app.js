@@ -133,7 +133,7 @@ class BkendzAdmin extends EventEmitter3 {
     }
     
     connectToApi() {
-        let url = location.hostname.indexOf('localhost') === -1 ? 'wss://bkendz-api.herokuapp.com' : 'ws://localhost:9002'
+        let url = location.hostname.indexOf('localhost') === -1 ? 'wss://bkendz-api.herokuapp.com' : 'ws://localhost:9001'
         this.api = this.connect(url, {connected: 'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
     }
     
@@ -236,7 +236,10 @@ app.on('server_connected', () => {
     app.elems.connectionAlert.slideUp().hide()
 })
 
-app.on('api_disconnected', () => console.log('api disconnected'))
+app.on('api_disconnected', () => {
+    console.log('api disconnected')
+    setTimeout(() => app.connectToApi(), 1000 * app.retryCount.api)
+})
 
 app.on('api_connected', () => {
     console.log('api connected')

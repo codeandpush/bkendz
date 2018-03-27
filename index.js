@@ -44,9 +44,22 @@ const {AdministerSession, SessionHandler, CrudSession} = lib.session
 class Bkendz {
     
     constructor(args) {
+        args = args || {}
         this.administerEnabled = this._administer = args.administerEnabled
         this.apiEnabled = args.apiEnabled
         this.clientEnabled = args.clientEnabled
+        
+        if(_.includes(this.constructor.PROCESS_NAMES, args.enableOnly)){
+            for(let procName of this.constructor.PROCESS_NAMES){
+                this[`${procName}Enabled`] = args.enableOnly === procName
+            }
+        }
+        
+        if(_.isBoolean(args.standalone) && args.standalone){
+            this.apiEnabled = true //
+        }
+        
+        console.log(`[${this.constructor.name}] starting configuration: api=${this.apiEnabled}, client=${this.clientEnabled}, administer=${this.administerEnabled}`)
         
         this.optsAdmin = args.optsAdmin || {}
         this.optsApi = args.optsApi || {}
@@ -106,6 +119,12 @@ class Bkendz {
 Bkendz.SESSION_CLS_ADMIN = AdministerSession
 Bkendz.SESSION_CLS_API = CrudSession
 Bkendz.SESSION_CLS_CLIENT = SessionHandler
+
+Bkendz.PROCESS_NAME_ADMIN = 'administer'
+Bkendz.PROCESS_NAME_API = 'api'
+Bkendz.PROCESS_NAME_CLIENT = 'client'
+
+Bkendz.PROCESS_NAMES = [Bkendz.PROCESS_NAME_ADMIN, Bkendz.PROCESS_NAME_CLIENT, Bkendz.PROCESS_NAME_API]
 
 module.exports = {
     tasks,
