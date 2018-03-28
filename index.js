@@ -132,6 +132,7 @@ module.exports = {
     modelsSync,
     Bkendz,
     db: lib.db,
+    util: lib.utils,
     sequelize: require('sequelize'),
     DbObject: lib.db.DbObject,
     SessionHandler,
