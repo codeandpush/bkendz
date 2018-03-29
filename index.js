@@ -101,7 +101,10 @@ class Bkendz {
     
         if(this.apiEnabled){
             this.api.models.sequelize.sync()
-                .then(() => {
+                .catch((error) => {
+                    console.error(`[${this.constructor.name}] error synchronising models:`, error)
+                })
+                .finally(() => {
                     this.api.servers.http.listen(port)
                 })
             
