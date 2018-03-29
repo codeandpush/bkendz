@@ -1,6 +1,6 @@
 {
   "name": "bkendz",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "description": "Admin page for viewing database entries and user requests in realtime",
   "main": "index.js",
   "scripts": {
