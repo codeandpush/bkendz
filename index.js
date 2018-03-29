@@ -100,24 +100,24 @@ class Bkendz {
     listen(port) {
     
         if(this.apiEnabled){
-            this.api.models.sequelize.sync()
-                .catch((error) => {
-                    console.error(`[${this.constructor.name}] error synchronising models (1):`, error)
-                    
-                    let configPath = lib.utils.getRcConf()['config']
-                    let dirName = path.join(path.dirname(configPath), require(configPath).development.storage)
-                    
-                    let cmd = `chown -R 777 ${path.dirname(dirName)}`
-                    console.log('[bkendz] executing command:', cmd)
-                    let exec = require('child_process').execSync
-                    return exec(cmd, {stdio: [0, 1, 2]})
-                })
-                .catch((error) => {
-                    console.error(`[${this.constructor.name}] error synchronising models (2):`, error)
-                })
-                .finally(() => {
+            // this.api.models.sequelize.sync()
+            //     .catch((error) => {
+            //         console.error(`[${this.constructor.name}] error synchronising models (1):`, error)
+            //
+            //         let configPath = lib.utils.getRcConf()['config']
+            //         let dirName = path.join(path.dirname(configPath), require(configPath).development.storage)
+            //
+            //         let cmd = `chown -R 777 ${path.dirname(dirName)}`
+            //         console.log('[bkendz] executing command:', cmd)
+            //         let exec = require('child_process').execSync
+            //         return exec(cmd, {stdio: [0, 1, 2]})
+            //     })
+            //     .catch((error) => {
+            //         console.error(`[${this.constructor.name}] error synchronising models (2):`, error)
+            //     })
+            //     .finally(() => {
                     this.api.servers.http.listen(port)
-                })
+             //   })
             
         }
         
