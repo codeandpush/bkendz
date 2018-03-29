@@ -133,7 +133,13 @@ class BkendzAdmin extends EventEmitter3 {
     }
     
     connectToApi() {
-        let url = location.hostname.indexOf('localhost') === -1 ? 'wss://bkendz-api.herokuapp.com' : 'ws://localhost:9001'
+        let url
+        
+        if(this.API_URL){
+            url = this.API_URL
+        }else{
+            url = location.hostname.indexOf('localhost') === -1 ? 'wss://bkendz-api.herokuapp.com' : 'ws://localhost:9001'
+        }
         this.api = this.connect(url, {connected: 'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
     }
     
