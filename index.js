@@ -49,6 +49,7 @@ class Bkendz {
         this.administerEnabled = this._administer = args.administerEnabled
         this.apiEnabled = args.apiEnabled
         this.clientEnabled = args.clientEnabled
+        this.standalone = _.isBoolean(args.standalone) ? args.standalone : false
         
         if(_.includes(this.constructor.PROCESS_NAMES, args.enableOnly)){
             for(let procName of this.constructor.PROCESS_NAMES){
@@ -56,11 +57,11 @@ class Bkendz {
             }
         }
         
-        if(_.isBoolean(args.standalone) && args.standalone){
-            this.apiEnabled = true //
+        if(this.standalone){
+            this.apiEnabled = true
         }
         
-        console.log(`[${this.constructor.name}] starting configuration: api=${this.apiEnabled}, client=${this.clientEnabled}, administer=${this.administerEnabled}`)
+        console.log(`[${this.constructor.name}] starting configuration: api=${this.apiEnabled}, client=${this.clientEnabled}, administer=${this.administerEnabled}, standalone=${this.standalone}`)
         
         this.optsAdmin = args.optsAdmin || {}
         this.optsApi = args.optsApi || {}
@@ -103,14 +104,19 @@ class Bkendz {
                 .then(() => {
                     this.api.servers.http.listen(port)
                 })
+            
         }
         
+        if(this.standalone) port++
+        
         if(this.administerEnabled) {
-            this.admin.servers.http.listen(port + 1)
+            this.admin.servers.http.listen(port)
         }
     
+        if(this.standalone) port++
+        
         if(this.clientEnabled){
-            this.client.servers.http.listen(port + 2)
+            this.client.servers.http.listen(port)
         }
         
         this._listening = true
