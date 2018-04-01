@@ -249,7 +249,13 @@ app.on('api_disconnected', () => {
 
 app.on('api_connected', () => {
     console.log('api connected')
-    let usersTable = app.gridOptions // init table
+    
+    if(!app.dbSchema){
+        app.api.json('/as').then((resp) => {
+            app.dbSchema = resp.data
+            let usersTable = app.gridOptions // init table
+        })
+    }
     
     function updateOrInsert(data, gridApi) {
         let rowNode = gridApi.getRowNode(data.id)
@@ -272,7 +278,6 @@ app.on('api_connected', () => {
             let api = app.gridOptions[gridAttrName].api
             updateOrInsert(update.value, api)
         }
-        
     })
 })
 
