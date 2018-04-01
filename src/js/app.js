@@ -33,6 +33,7 @@ class BkendzAdmin extends EventEmitter3 {
         this.deferreds = {}
         this._schema = null
         this._gridOptions = null
+        this.apiLocation = null
     }
     
     get elems() {
@@ -133,13 +134,9 @@ class BkendzAdmin extends EventEmitter3 {
     }
     
     connectToApi() {
-        let url
-        
-        if(this.API_URL){
-            url = this.API_URL
-        }else{
-            url = location.hostname.indexOf('localhost') === -1 ? 'wss://bkendz-api.herokuapp.com' : 'ws://localhost:9001'
-        }
+        if(!this.apiLocation) throw Error('No API location provided!')
+        let url = this.apiLocation[location.protocol === 'http:' ? 'ws' : 'wss']
+        console.log('[connectToApi] url=', url, this.apiLocation)
         this.api = this.connect(url, {connected: 'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
     }
     
@@ -240,6 +237,14 @@ app.on('server_disconnected', () => {
 app.on('server_connected', () => {
     console.log('server connected')
     app.elems.connectionAlert.slideUp().hide()
+    
+    if(!app.apiLocation){
+        app.server.json('/api', location).then((res) => {
+            app.apiLocation = res.data
+            console.log('[API LOCATION] ', res)
+            app.connectToApi()
+        })
+    }
 })
 
 app.on('api_disconnected', () => {
@@ -332,9 +337,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // lookup the container we want the Grid to use
     console.log('DOM loaded')
     app.init()
-    
     app.connectToServer()
-    app.connectToApi()
     
 });
 
