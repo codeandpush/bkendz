@@ -50,6 +50,10 @@ class Bkendz {
         this.apiEnabled = args.apiEnabled
         this.clientEnabled = args.clientEnabled
         this.standalone = _.isBoolean(args.standalone) ? args.standalone : false
+    
+        if(args.enableOnly === 'admin'){
+            args.enableOnly = this.constructor.PROCESS_NAME_ADMIN
+        }
         
         if(_.includes(this.constructor.PROCESS_NAMES, args.enableOnly)){
             for(let procName of this.constructor.PROCESS_NAMES){
@@ -71,30 +75,41 @@ class Bkendz {
         this._sessClient = null
         this._sessApi = null
         this._listening = false
-        this.apiSheet = args.apiSheet || {}
     }
     
     set apiSheet(as) {
-        this._apiSheet = as || {}
+        this.api.apiSheet = as || {}
     }
     
     get apiSheet() {
-        return this._apiSheet
+        return this.api.apiSheet
     }
     
     get admin() {
-        if (!this._sessAdmin) this._sessAdmin = new this.constructor.SESSION_CLS_ADMIN(this.optsAdmin)
+        if (!this._sessAdmin) this._sessAdmin = new this.constructor.DEFAULT_SESSION_CLS_ADMIN(this.optsAdmin)
         return this._sessAdmin
     }
     
+    set admin(session){
+        this._sessAdmin = session
+    }
+    
     get client() {
-        if (!this._sessClient) this._sessClient = new this.constructor.SESSION_CLS_CLIENT(this.optsClient)
+        if (!this._sessClient) this._sessClient = new this.constructor.DEFAULT_SESSION_CLS_CLIENT(this.optsClient)
         return this._sessClient
     }
     
+    set client(session){
+        this._sessClient = session
+    }
+    
     get api() {
-        if (!this._sessApi) this._sessApi = new this.constructor.SESSION_CLS_API(_.merge({apiSheet: this.apiSheet}, this.optsApi))
+        if (!this._sessApi) this._sessApi = new this.constructor.DEFAULT_SESSION_CLS_API(_.merge({apiSheet: this.apiSheet}, this.optsApi))
         return this._sessApi
+    }
+    
+    set api(apiSession){
+        this._sessApi = apiSession
     }
     
     listen(port) {
@@ -137,9 +152,9 @@ class Bkendz {
     }
 }
 
-Bkendz.SESSION_CLS_ADMIN = AdministerSession
-Bkendz.SESSION_CLS_API = CrudSession
-Bkendz.SESSION_CLS_CLIENT = SessionHandler
+Bkendz.DEFAULT_SESSION_CLS_ADMIN = AdministerSession
+Bkendz.DEFAULT_SESSION_CLS_API = CrudSession
+Bkendz.DEFAULT_SESSION_CLS_CLIENT = SessionHandler
 
 Bkendz.PROCESS_NAME_ADMIN = 'administer'
 Bkendz.PROCESS_NAME_API = 'api'
@@ -156,6 +171,7 @@ module.exports = {
     sequelize: require('sequelize'),
     DbObject: lib.db.DbObject,
     SessionHandler,
+    AdministerSession,
     ApiSessionHandler: CrudSession,
     ModelImporter: lib.db.ModelImporter
 }
