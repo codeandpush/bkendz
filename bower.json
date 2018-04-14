@@ -18,5 +18,8 @@
     "bz_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "eventemitter3": "^3.0.1"
+  }
 }
