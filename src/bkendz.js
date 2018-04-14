@@ -58,7 +58,7 @@ class Bkendz extends EventEmitter {
                     subscriptions[resp.data.subscribed] = 0
                     console.log('subscriptions:', subscriptions)
                     
-                    EventEmitter3.prototype.on.call(ws, eventName, callback)
+                    EventEmitter.prototype.on.call(ws, eventName, callback)
                 })
         }
         
