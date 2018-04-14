@@ -4,8 +4,21 @@ const gulp = require('./tasks')
 const concat = require('gulp-concat');
 const bower = require('gulp-bower');
 const publish = require('npm-publish-release');
+const _ = require('lodash');
+const nodemon = require('gulp-nodemon')
 
-
+gulp.task('watch', ['build:dist'] , function () {
+    let stream = nodemon({script: null, watch: 'src', ignore: ['ignored.js'], ext: 'js', tasks: ['build:dist'] })
+    
+    return stream
+            .on('restart', function () {
+                console.log('restarted!')
+            })
+            .on('crash', function() {
+                console.error('Application has crashed!\n')
+                stream.emit('restart', 10)  // restart the server in 10 seconds
+            })
+})
 
 gulp.task('bower', () => {
     return bower()
@@ -24,23 +37,12 @@ gulp.task('build:dist:bz-admin', ['bower'], () => {
         .pipe(gulp.dest('dist'))
 })
 
-gulp.task('publish:patch', () => {
-    let child = publish({verbose: true})
-        .then(function() {
-            console.log('success!');
-        })
-        .catch(function(err) {
-            console.error('Something went wrong:', err);
-        })
-        .done();
+_.each(['patch', 'minor', 'major'], (bumpType) => {
     
-    return require('node-clean-exit')([child])
-})
-
-gulp.task('publish:minor', () => {
-    console.log('publish minor')
-})
-
-gulp.task('publish:major', () => {
-    console.log('publish major')
+    gulp.task(`publish:${bumpType}`, ['build:dist'], () => {
+        return publish(bumpType, {verbose: true})
+            .then(function() {
+                console.log(`[Release] ${bumpType} complete.`);
+            })
+    })
 })

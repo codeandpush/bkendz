@@ -13,8 +13,6 @@ class BkendzAdmin extends Bkendz {
     get elems() {
         return {
             connectionAlert: $('#connection_alert'),
-            // usersGridDiv: $(document.querySelector('#grid_user')),
-            // itemsGridDiv: $(document.querySelector('#grid_presentation')),
             searchInput: $(document.querySelector('#search_term')),
             searchResultsItem: $(document.querySelector('#search_items')),
             searchResultsUser: $(document.querySelector('#search_users')),

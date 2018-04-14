@@ -153,5 +153,3 @@ class Bkendz extends EventEmitter {
     }
     
 }
-
-console.log('imported bz')
