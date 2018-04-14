@@ -1,0 +1,22 @@
+{
+  "name": "bkendz",
+  "description": "Admin page for viewing database entries and user requests in realtime",
+  "main": "index.js",
+  "authors": [
+    "Chinwo",
+    "Anthony (anthony.chinwo@gmail.com)"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "rent"
+  ],
+  "homepage": "https://github.com/codeandpush/bkendz",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "bz_components",
+    "test",
+    "tests"
+  ]
+}

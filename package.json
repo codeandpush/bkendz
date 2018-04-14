@@ -4,7 +4,8 @@
   "description": "Admin page for viewing database entries and user requests in realtime",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "build": "gulp build:dist"
   },
   "dependencies": {
     "bluebird": "latest",
@@ -14,6 +15,7 @@
     "epa": "^0.2.1",
     "express": "latest",
     "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
     "jwt-simple": "^0.5.1",
     "lodash": "latest",
     "moment": "^2.18.1",
@@ -37,6 +39,8 @@
   },
   "homepage": "https://github.com/codeandpush/bkendz#readme",
   "devDependencies": {
-    "mocha": "^5.0.5"
+    "gulp-bower": "0.0.14",
+    "mocha": "^5.0.5",
+    "node-clean-exit": "^0.2.1"
   }
 }
