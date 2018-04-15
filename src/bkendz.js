@@ -37,6 +37,7 @@ class Bkendz extends EventEmitter {
         this.apiLocation = null
         this._templates = {}
         this._schema = null
+        this.debugMode = false
     }
     
     connect(url, options = {}) {
@@ -133,11 +134,14 @@ class Bkendz extends EventEmitter {
     
     init() {
         const emitWrap = (event) => {
+
             let emit = event.target.getAttribute(`data-emit-${event.type}`)
-            this.emit(`${event.type}_${emit}`, event)
+            emit = `${event.type}_${emit}`
+            if(this.debugMode) console.log('[Directive] emitting:', emit)
+            this.emit(emit, event)
         }
         
-        ['keyup', 'click'].forEach((eventType) => {
+        ['keyup', 'click', 'change'].forEach((eventType) => {
             $(document).on(eventType, `[data-emit-${eventType}]`, emitWrap)
         })
         
