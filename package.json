@@ -5,26 +5,29 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "build": "gulp build:dist"
+    "build": "gulp build:dist",
+    "postinstall": "npm run build"
   },
   "dependencies": {
-    "bluebird": "latest",
+    "bluebird": "3.5.1",
     "body-parser": "^1.18.2",
     "cookie-parser": "^1.4.3",
     "ejs": "^2.5.8",
     "epa": "^0.2.1",
-    "express": "latest",
+    "express": "4.16.3",
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.1",
     "jwt-simple": "^0.5.1",
-    "lodash": "latest",
-    "moment": "^2.18.1",
+    "lodash": "4.17.5",
+    "map-stream": "0.0.7",
+    "moment": "^2.22.1",
     "morgan": "^1.8.2",
+    "path-to-regexp": "2.2.0",
     "repl.history": "^0.1.4",
     "sequelize": "3.32.1",
     "sequelize-cli": "^2.6.0",
-    "websocket": "^1.0.24",
-    "path-to-regexp": "latest"
+    "through2": "2.0.3",
+    "websocket": "^1.0.24"
   },
   "repository": {
     "type": "git",

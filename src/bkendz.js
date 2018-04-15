@@ -188,3 +188,5 @@ class Bkendz extends EventEmitter {
     }
     
 }
+
+Bkendz.VERSION = Bkendz.version = '<%= package.version %>'
