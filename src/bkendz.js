@@ -35,6 +35,8 @@ class Bkendz extends EventEmitter {
         this.retryCount = {api: 0, server: 0}
         this.deferreds = {}
         this.apiLocation = null
+        this._templates = {}
+        this._schema = null
     }
     
     connect(url, options = {}) {
@@ -150,6 +152,35 @@ class Bkendz extends EventEmitter {
         
         document.addEventListener('DOMContentLoaded', start)
         return start
+    }
+    
+    getTemplate(name, opts){
+        opts = opts || {}
+        let reload = _.isUndefined(opts.reload) ? false : opts.reload
+        let cached = this._templates[name]
+        
+        if(reload || !_.isString(cached)){
+            return this.server.json(`/template?name=${name}`).then((res) => {
+                this._templates[name] = res.data
+                return res.data
+            })
+        } else {
+            return Promise.resolve(cached)
+        }
+    }
+    
+    fetch(modelName, options){
+        return this.api.json(`/fetch?model=${modelName}`, options || {})
+    }
+    
+    set dbSchema(schema){
+        let oldAs = this._schema
+        this._schema = schema
+        this.emit('changed_dbschema', schema, oldAs)
+    }
+    
+    get dbSchema(){
+        return this._schema
     }
     
 }

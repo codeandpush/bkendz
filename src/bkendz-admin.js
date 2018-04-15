@@ -82,12 +82,4 @@ class BkendzAdmin extends Bkendz {
         $(searchResult).prop('hidden', true)
         this._SEARCH_RESULT_POOL.push(searchResult)
     }
-    
-    set dbSchema(schema){
-        this._schema = schema
-    }
-    
-    get dbSchema(){
-        return this._schema
-    }
 }

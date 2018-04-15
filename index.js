@@ -173,7 +173,8 @@ module.exports = {
     SessionHandler,
     AdministerSession,
     ApiSessionHandler: CrudSession,
-    ModelImporter: lib.db.ModelImporter
+    ModelImporter: lib.db.ModelImporter,
+    topic: lib.topic
 }
 
 if (require.main === module) {
