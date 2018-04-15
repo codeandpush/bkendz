@@ -126,7 +126,7 @@ class Bkendz extends EventEmitter {
     }
     
     connectToApi() {
-        if(!this.apiLocation) throw Error('No API location provided!')
+        if (!this.apiLocation) throw Error('No API location provided!')
         let url = this.apiLocation[location.protocol === 'http:' ? 'ws' : 'wss']
         console.log('[connectToApi] url=', url, this.apiLocation)
         this.api = this.connect(url, {connected: 'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
@@ -134,10 +134,10 @@ class Bkendz extends EventEmitter {
     
     init() {
         const emitWrap = (event) => {
-
+            
             let emit = event.target.getAttribute(`data-emit-${event.type}`)
             emit = `${event.type}_${emit}`
-            if(this.debugMode) console.log('[Directive] emitting:', emit)
+            if (this.debugMode) console.log('[Directive] emitting:', emit)
             this.emit(emit, event)
         }
         
@@ -147,23 +147,25 @@ class Bkendz extends EventEmitter {
         
     }
     
-    main(){
+    main() {
         
         let start = () => {
-             this.init()
-             this.connectToServer()
+            this.init()
+            this.connectToServer()
         }
         
         document.addEventListener('DOMContentLoaded', start)
         return start
     }
     
-    getTemplate(name, opts){
+    getTemplate(name, opts) {
+        if (!_.isString(name)) throw new Error('template name must be string, found %s', name)
+        
         opts = opts || {}
-        let reload = _.isUndefined(opts.reload) ? false : opts.reload
+        let reload = _.isUndefined(opts.reload) ? true : opts.reload
         let cached = this._templates[name]
         
-        if(reload || !_.isString(cached)){
+        if (reload || !_.isString(cached)) {
             return this.server.json(`/template?name=${name}`).then((res) => {
                 this._templates[name] = res.data
                 return res.data
@@ -173,17 +175,40 @@ class Bkendz extends EventEmitter {
         }
     }
     
-    fetch(modelName, options){
+    repeat(opts) {
+        opts = opts || {}
+        let name = opts.template
+        let targetSelector = opts.target
+        let inputList = opts.templateArgs || []
+        let wrapperFn = opts.wrapFn || null
+        return this.getTemplate(name)
+            .then((rawStr) => {
+                let compiled = _.template(rawStr)
+                let target = $(targetSelector)
+                _.each(inputList, (inputData, ...args) => {
+                    let html = compiled(inputData)
+                    if (wrapperFn) {
+                        let r = wrapperFn(inputData, ...args)
+                        if ('append' in r) html += r.append
+                        if ('prepend' in r) html = r.prepend + html
+                    }
+                    let el = $(html)
+                    target.append(el)
+                })
+            })
+    }
+    
+    fetch(modelName, options) {
         return this.api.json(`/fetch?model=${modelName}`, options || {})
     }
     
-    set dbSchema(schema){
+    set dbSchema(schema) {
         let oldAs = this._schema
         this._schema = schema
         this.emit('changed_dbschema', schema, oldAs)
     }
     
-    get dbSchema(){
+    get dbSchema() {
         return this._schema
     }
     
