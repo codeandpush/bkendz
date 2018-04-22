@@ -55,7 +55,7 @@ gulp.task('build:dist:bz-admin', ['bower'], () => {
         .pipe(gulp.dest('dist'))
 })
 
-_.each(['patch', 'minor', 'major'], (bumpType) => {
+_.each(['patch', 'minor'], (bumpType) => {
     
     gulp.task(`publish:${bumpType}`, ['build:dist'], () => {
         return require('npm-publish-release')(bumpType, {verbose: true})
