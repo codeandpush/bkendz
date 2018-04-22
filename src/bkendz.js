@@ -208,10 +208,11 @@ class Bkendz extends EventEmitter {
 
         opts = opts || {}
         let reload = _.isUndefined(opts.reload) ? true : opts.reload
+        let rendered = opts.rendered || {}
         let cached = this._templates[name]
 
         if (reload || !_.isString(cached)) {
-            return this.server.json(`/template?name=${name}`).then((res) => {
+            return this.server.json(`/template?name=${name}`, {rendered}).then((res) => {
                 this._templates[name] = res.data
                 return res.data
             })
