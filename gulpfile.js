@@ -25,14 +25,13 @@ gulp.task('bower', () => {
     return bower()
 })
 
-function ejsPlugin() {
+function ejsPlugin(paths) {
     const pkg = require(path.join(process.cwd(), './package.json'))
     return require('map-stream')(function (file, cb) {
-        if (file.isBuffer()) {
+        if (_.isUndefined(paths) || _.includes(paths, file.path)) {
+            if(!file.isBuffer()) throw new Error('Unsupported Vinyl file type')
             let rendered = require('ejs').compile(String(file.contents))({package: pkg})
             file.contents = new Buffer(rendered)
-        } else {
-            throw new Error('Unsupported Vinyl file type')
         }
         cb(null, file)
     })
@@ -40,12 +39,13 @@ function ejsPlugin() {
 
 gulp.task('build:dist', ['build:dist:bz-admin'], () => {
     return gulp.src([
+        './bower_components/lodash/lodash.js',
         './bower_components/eventemitter3/index.js',
         './src/bkendz.js',
         './bower_components/moment/moment.js'
     ])
+        .pipe(ejsPlugin([path.resolve('./src/bkendz.js')]))
         .pipe(concat('bkendz.js'))
-        .pipe(ejsPlugin())
         .pipe(gulp.dest('dist'))
 })
 

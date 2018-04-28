@@ -32,6 +32,20 @@ Deferred._ID = 1
 
 _.merge(WebSocket.prototype, Object.create(EventEmitter.prototype))
 
+class LazyObject {
+    
+    constructor(getters){
+        this[Symbol.for('getters')] = getters
+        
+        let properties = _.transform(getters, function(result, func, key) {
+            result[key] = {
+                get: func
+            }
+        }, {})
+        Object.defineProperties(this, properties)
+    }
+    
+}
 
 class Bkendz extends EventEmitter {
 
@@ -190,6 +204,7 @@ class Bkendz extends EventEmitter {
         return this.api.json('/authenticate', {email: email, username: email, password})
             .then((resp) => {
                 this.accessToken = resp.data.tokens.access
+                return resp.data.tokens
             })
     }
 
