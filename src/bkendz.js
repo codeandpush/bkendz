@@ -118,7 +118,7 @@ class Bkendz extends EventEmitter {
             if (_.isObject(deferred)) {
                 delete this.deferreds[deferredId]
 
-                if(msg.error) deferred.reject(msg.error)
+                if(msg.error) deferred.reject(new Error(`[${name}] ${topic}: ${msg.error}`))
                 else deferred.resolve(msg)
             } else if (topic === '/subscribe' && parsed.subject in subscriptions) {
                 subscriptions[parsed.subject]++
